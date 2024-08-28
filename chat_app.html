@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Real-Time Chat App</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+        .chat-container {
+            width: 400px;
+            background-color: #fff;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+        .chat-header {
+            background-color: #007bff;
+            color: #fff;
+            padding: 10px;
+            text-align: center;
+            font-size: 18px;
+        }
+        .chat-body {
+            flex: 1;
+            padding: 10px;
+            overflow-y: auto;
+        }
+        .chat-message {
+            margin-bottom: 10px;
+            display: flex;
+        }
+        .chat-message.user {
+            justify-content: flex-end;
+        }
+        .chat-message .message {
+            max-width: 70%;
+            padding: 8px 12px;
+            border-radius: 15px;
+            background-color: #f1f1f1;
+        }
+        .chat-message.user .message {
+            background-color: #007bff;
+            color: #fff;
+        }
+        .chat-footer {
+            display: flex;
+            padding: 10px;
+            background-color: #f4f4f4;
+        }
+        .chat-footer input {
+            flex: 1;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+        .chat-footer button {
+            margin-left: 10px;
+            padding: 10px;
+            background-color: #007bff;
+            color: #fff;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <div class="chat-container">
+        <div class="chat-header">Firebase Chat App</div>
+        <div class="chat-body" id="chat-body">
+            <!-- Messages will appear here -->
+        </div>
+        <div class="chat-footer">
+            <input type="text" id="chat-input" placeholder="Type a message...">
+            <button id="send-btn" onclick="sendMessage()">Send</button>
+        </div>
+    </div>
+
+    <script type="module">
+        // Import the necessary Firebase functions
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-app.js";
+        import { getDatabase, ref, push, onChildAdded } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-database.js";
+
+        // Your Firebase configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyB9xsG-mBKcr31suOihMvsDZV8qNTPgznc",
+            authDomain: "chatsteve-5c332.firebaseapp.com",
+            projectId: "chatsteve-5c332",
+            storageBucket: "chatsteve-5c332.appspot.com",
+            messagingSenderId: "41388410252",
+            appId: "1:41388410252:web:012581be1bceac6c7d42a9",
+            measurementId: "G-99NZRN01CX"
+        };
+
+        // Initialize Firebase
+        const app = initializeApp(firebaseConfig);
+        const db = getDatabase(app);
+
+        const chatBody = document.getElementById('chat-body');
+        const chatInput = document.getElementById('chat-input');
+
+        // Function to send a message
+        function sendMessage() {
+            const message = chatInput.value.trim();
+            if (message) {
+                push(ref(db, 'chat/'), {
+                    sender: "User",
+                    message: message,
+                    timestamp: Date.now()
+                });
+                chatInput.value = '';
+            }
+        }
+
+        // Function to display messages
+        function displayMessage(sender, message) {
+            const messageElement = document.createElement('div');
+            messageElement.className = 'chat-message' + (sender === 'User' ? ' user' : '');
+            messageElement.innerHTML = `<div class="message">${message}</div>`;
+            chatBody.appendChild(messageElement);
+            chatBody.scrollTop = chatBody.scrollHeight;
+        }
+
+        // Listen for new messages
+        const chatRef = ref(db, 'chat/');
+        onChildAdded(chatRef, (snapshot) => {
+            const data = snapshot.val();
+            displayMessage(data.sender, data.message);
+        });
+
+        // Send message on Enter key
+        chatInput.addEventListener('keyup', function(event) {
+            if (event.key === 'Enter') {
+                sendMessage();
+            }
+        });
+    </script>
+</body>
+</html>
